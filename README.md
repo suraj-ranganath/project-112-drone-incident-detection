@@ -1,0 +1,2 @@
+# Project 112: Drone Incident Detection
+This is a research repo for the project 112: Drone Incident Detection. The project is a collaboration between the IISc, CDAC and the Karnataka Police. The goal of the project is to detect public hazards like fire and accidents using drones footage.

@@ -1,0 +1,95 @@
+<div>Upload a video file to run the image classification model:</div>
+<input type="file" accept="video/*" id="uploadButton" />
+<div id="videoContainer"></div>
+<div id="labelContainer">Label will appear here...</div>
+<button id="pauseButton">Pause</button> 
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.dom.min.js"></script>
+<script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+<script type="text/javascript">
+  // Classifier Variable
+  let classifier;
+  // Model URL
+  let imageModelURL = 'http://localhost:8080/model_files/'; // <-- Update this URL to where you've hosted the model files
+
+  // Video
+  let video;
+  let uploadedVideo = null;
+  let playingVideo = false;
+  // To store the classification
+  let label = "";
+
+  // Load the model first
+  function preload() {
+    classifier = ml5.imageClassifier(imageModelURL + 'model.json');
+  }
+
+  function setup() {
+    noCanvas();
+    // Create a default video element which could be a static image or default video
+    video = createVideo(['path_to_default_video.mp4'], videoReady);
+    video.size(320, 240);
+    video.id('videoElement');
+    video.parent('videoContainer');
+    video.hide();
+
+    // Handle video upload
+    select('#uploadButton').changed(event => {
+      if (uploadedVideo) {
+        // If there's an uploaded video already, stop and dispose of it
+        uploadedVideo.stop();
+        uploadedVideo.remove();
+      }
+      // Create a new video element for the uploaded file
+      uploadedVideo = createVideo([URL.createObjectURL(event.target.files[0])], videoReady);
+      uploadedVideo.size(320, 240);
+      uploadedVideo.parent('videoContainer');
+      uploadedVideo.hide();
+      label = ""; // Reset the label when a new video is uploaded
+      select('#labelContainer').html("Label will appear here..."); // Reset the label container text
+    });
+
+    // Pause button event listener
+    select('#pauseButton').mousePressed(togglePlayPause);
+  }
+
+  function togglePlayPause() {
+    let currentVideo = uploadedVideo || video;
+    if (playingVideo) {
+      currentVideo.pause(); // Pause the video
+      playingVideo = false; // Update the playingVideo flag
+    } else {
+      currentVideo.loop(); // Play the video if it is paused
+      playingVideo = true; // Update the playingVideo flag
+    }
+  }
+
+  // Video ready callback
+  function videoReady() {
+    playingVideo = true;
+    classifyVideo();
+  }
+
+  // Get a prediction for the current video frame
+  function classifyVideo() {
+    if (playingVideo) {
+      let currentVideo = uploadedVideo || video;
+      currentVideo.play();
+      currentVideo.show();
+      classifier.classify(currentVideo.elt, gotResult);
+    }
+  }
+
+  // When we get a result
+  function gotResult(error, results) {
+    if (error) {
+      console.error(error);
+      return;
+    }
+    label = results[0].label;
+    // Display the label somewhere on the page
+    select('#labelContainer').html(label);
+    classifyVideo();
+  }
+</script>

@@ -82,6 +82,7 @@
     } else {
       currentVideo.loop(); // Play the video if it is paused
       playingVideo = true; // Update the playingVideo flag
+      classifyVideo();
       // change name of the button to pause
       select('#pauseButton').html('Pause');
     }

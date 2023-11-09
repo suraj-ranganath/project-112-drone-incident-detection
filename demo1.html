@@ -1,13 +1,28 @@
-<div>Upload a video file to run the image classification model:</div>
+<!DOCTYPE html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="styles.css">
+<title>Incident Detection Demo for 112 Project</title>
+</head>
+
+<body>
+<div class = "container">
+<h1>Incident Detection Demo for project 112</h1>
+<div class = "card">
+<h3>Upload a video file to run the image classification model:</h3>
 <input type="file" accept="video/*" id="uploadButton" />
 <div id="videoContainer"></div>
-<div id="labelContainer">Label will appear here.</div>
-<div id="confidenceContainer">Confidence percentage will appear here.</div>
-<button id="pauseButton">Pause</button> 
+<div id="labelContainer">Classification Label</div>
+<div id="confidenceContainer">Confidence Percentage</div>
+<button id="pauseButton">Pause</button>
+</div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.dom.min.js"></script>
 <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+
 <script type="text/javascript">
   // Classifier Variable
   let classifier;
@@ -139,3 +154,5 @@ function getMajorityVote(labels) {
   return [sortedLabels[0], majorityPercentage*100];
 }
 </script>
+</body>
+</html>

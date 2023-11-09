@@ -1,7 +1,8 @@
 <div>Upload a video file to run the image classification model:</div>
 <input type="file" accept="video/*" id="uploadButton" />
 <div id="videoContainer"></div>
-<div id="labelContainer">Label will appear here...</div>
+<div id="labelContainer">Label will appear here.</div>
+<div id="confidenceContainer">Confidence percentage will appear here.</div>
 <button id="pauseButton">Pause</button> 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"></script>
@@ -32,7 +33,8 @@
     video.size(320, 240);
     video.id('videoElement');
     video.parent('videoContainer');
-    video.hide();
+    video.hide(); 
+    // Set the framerate to 10 fps
 
     // Handle video upload
     select('#uploadButton').changed(event => {
@@ -45,6 +47,7 @@
       uploadedVideo = createVideo([URL.createObjectURL(event.target.files[0])], videoReady);
       uploadedVideo.size(320, 240);
       uploadedVideo.parent('videoContainer');
+      frameRate(10);
       uploadedVideo.hide();
       label = ""; // Reset the label when a new video is uploaded
       select('#labelContainer').html("Label will appear here..."); // Reset the label container text
@@ -59,9 +62,13 @@
     if (playingVideo) {
       currentVideo.pause(); // Pause the video
       playingVideo = false; // Update the playingVideo flag
+      // change name of the button to play
+      select('#pauseButton').html('Play');
     } else {
       currentVideo.loop(); // Play the video if it is paused
       playingVideo = true; // Update the playingVideo flag
+      // change name of the button to pause
+      select('#pauseButton').html('Pause');
     }
   }
 
@@ -82,14 +89,53 @@
   }
 
   // When we get a result
-  function gotResult(error, results) {
-    if (error) {
-      console.error(error);
-      return;
-    }
-    label = results[0].label;
-    // Display the label somewhere on the page
-    select('#labelContainer').html(label);
+
+// Buffer to store the last five classification results
+let resultsBuffer = [];
+
+// Update the gotResult function to use a majority vote system
+function gotResult(error, results) {
+  if (error) {
+    console.error(error);
+    return;
+  }
+  // Add the latest result to the buffer
+  resultsBuffer.push(results[0].label);
+
+  // Keep only the last five results
+  if (resultsBuffer.length > 100) {
+    resultsBuffer.shift(); // Remove the oldest result
+  }
+
+  // Determine the label with the majority vote
+  label = getMajorityVote(resultsBuffer)[0];
+  let majorityPercentage = getMajorityVote(resultsBuffer)[1];
+
+  // Display the majority label
+  select('#labelContainer').html(label);
+  select('#confidenceContainer').html("Confidence: "+majorityPercentage+"%");
+
+  // Continue classifying if video is playing
+  if (playingVideo) {
     classifyVideo();
   }
+}
+
+// Function to get the majority vote from an array of labels
+function getMajorityVote(labels) {
+  let counts = labels.reduce((count, label) => {
+    count[label] = (count[label] || 0) + 1;
+    return count;
+  }, {});
+
+  // Sort the labels by frequency
+  let sortedLabels = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  // Get percentage of majority label
+  let majorityPercentage = counts[sortedLabels[0]] / labels.length;
+
+  // Return the label with the highest frequency
+  // let countsString = JSON.stringify(counts);
+  // return array of label and percentage
+  return [sortedLabels[0], majorityPercentage*100];
+}
 </script>
